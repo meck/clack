@@ -1,0 +1,5 @@
+# The RP2350 has 512 KB of RAM, and the stack is in the same RAM.
+# Report a function that uses more than this number of bytes of stack.
+stack-size-threshold = 4096
+# Report an array on the stack that is larger than this number of bytes.
+array-size-threshold = 1024

@@ -1,0 +1,22 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # enable_kvm is true by default. The NixOS VM test then uses KVM.
+      - uses: cachix/install-nix-action@v31
+
+      # The runner is x86_64-linux. It can build only the checks of that
+      # system. For the other systems, it evaluates the outputs.
+      - name: Evaluate the outputs of all systems
+        run: nix flake check --all-systems --no-build
+
+      - name: Build and run the checks
+        run: nix flake check

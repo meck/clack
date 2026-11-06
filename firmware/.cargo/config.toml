@@ -1,0 +1,11 @@
+[build]
+target = "thumbv8m.main-none-eabihf"
+
+[target.thumbv8m.main-none-eabihf]
+# flip-link puts the stack below the static data. A stack overflow then
+# causes a hard fault, not memory corruption.
+linker = "flip-link"
+runner = "probe-rs run --chip RP235x"
+
+[env]
+DEFMT_LOG = "info"

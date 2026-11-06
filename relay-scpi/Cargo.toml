@@ -1,0 +1,36 @@
+[package]
+name = "relay-scpi"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/meck/clack"
+publish = false
+description = "SCPI command parser and state for an 8-channel relay board"
+
+[dependencies]
+heapless = "0.9.1"
+defmt = { version = "1.0.1", optional = true }
+
+[features]
+defmt = ["dep:defmt"]
+
+# This crate parses input from the host. A panic stops the core. Without a
+# debug probe, the watchdog then resets the chip, and all relays open. With
+# a probe, the watchdog pauses, and the relays keep their state.
+# These lints show the usual causes of a panic: indexing, slicing,
+# arithmetic, unwrap, expect and panic. They do not find all causes.
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+arithmetic_side_effects = "warn"
+indexing_slicing = "warn"
+string_slice = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+
+[lints.rust]
+unsafe_code = "forbid"

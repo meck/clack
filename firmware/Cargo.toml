@@ -1,0 +1,53 @@
+[package]
+name = "clack-firmware"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/meck/clack"
+publish = false
+description = "SCPI relay controller firmware for the Waveshare Pico-Relay-B with a Raspberry Pi Pico 2"
+
+[dependencies]
+relay-scpi = { path = "../relay-scpi", features = ["defmt"] }
+
+embassy-rp = { version = "0.10.0", features = ["rp235xa", "defmt", "time-driver", "critical-section-impl", "unstable-pac", "binary-info"] }
+embassy-executor = { version = "0.10.0", features = ["platform-cortex-m", "executor-thread", "defmt"] }
+embassy-time = { version = "0.5.1", features = ["defmt", "defmt-timestamp-uptime"] }
+embassy-sync = { version = "0.8.0", features = ["defmt"] }
+embassy-futures = "0.1.2"
+embassy-usb = { version = "0.6.0", features = ["defmt"] }
+
+cortex-m = { version = "0.7.7", features = ["inline-asm"] }
+cortex-m-rt = "0.7.5"
+defmt = "1.0.1"
+defmt-rtt = "1.0.0"
+panic-probe = { version = "1.0.0", features = ["print-defmt"] }
+static_cell = "2.1.1"
+heapless = "0.9.1"
+smart-leds = "0.4.0"
+
+[profile.release]
+debug = 2
+lto = true
+opt-level = "s"
+codegen-units = 1
+
+[profile.dev]
+opt-level = 1
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+arithmetic_side_effects = "warn"
+indexing_slicing = "warn"
+string_slice = "warn"
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+# flip-link changes a stack overflow into a hard fault. It does not prevent
+# the overflow. These lints help to prevent it. The limits are in
+# clippy.toml.
+large_stack_frames = "warn"
+large_stack_arrays = "warn"
