@@ -6,16 +6,47 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    strategy:
+      # Run all systems to the end, also when one of them fails.
+      fail-fast: false
+      matrix:
+        # ubuntu-latest is x86_64-linux. macos-latest is aarch64-darwin.
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      # The cache step removes old caches.
+      actions: write
     steps:
       - uses: actions/checkout@v7
 
-      # enable_kvm is true by default. The NixOS VM test then uses KVM.
+      # enable_kvm is true by default. On Linux, the NixOS VM test then
+      # uses KVM. The flake has the VM test only on Linux.
       - uses: cachix/install-nix-action@v31
 
-      # The runner is x86_64-linux. It can build only the checks of that
-      # system. For the other systems, it evaluates the outputs.
+      # Keep the Nix store between runs in the GitHub Actions cache. A run
+      # restores the newest cache of its OS. After the run, the step removes
+      # store paths until the store is smaller than the limit, saves a new
+      # cache when the sources changed, and removes the older caches.
+      # The limit must be larger than the full store. Otherwise the step
+      # removes the build results, and the next run builds them again. On
+      # 2026-11-07 the Linux store had approximately 6.4 GB, because of the
+      # NixOS VM test. The macOS store was smaller than 5 GB.
+      - uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('.github/workflows/check.yml', '**/*.nix', 'flake.lock', 'rust-toolchain.toml', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs', 'firmware/memory.x') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 8G
+          gc-max-store-size-macos: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
+
+      # Each runner builds only the checks of its own system. One runner
+      # evaluates the outputs of all systems, aarch64-linux included.
       - name: Evaluate the outputs of all systems
+        if: runner.os == 'Linux'
         run: nix flake check --all-systems --no-build
 
       - name: Build and run the checks
